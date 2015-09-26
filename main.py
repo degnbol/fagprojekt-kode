@@ -6,9 +6,13 @@ Created on Sat Sep 26 13:33:39 2015
 """
 
 import os
+import matplotlib.pyplot as plot
 
 os.chdir('/Users/Christian/OneDrive/Fagprojekt/fagprojekt-kode')
-from readHumanData import readHumanData
+from readHLA import readHLA
+from logTransform import logTransform
 
+sequence, meas = readHLA('data.txt')
+meas = logTransform(meas)
 
-k = readHumanData('data.txt')
+plot.hist(meas)
