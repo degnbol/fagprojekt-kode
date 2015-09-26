@@ -6,12 +6,9 @@ Created on Sat Sep 26 13:33:39 2015
 """
 
 import os
-from readHumanData import *
 
-os.chdir('/Users/Christian/OneDrive/Fagprojekt/python')
-
-sequence, meas = readHumanData('data.txt')
+os.chdir('/Users/Christian/OneDrive/Fagprojekt/fagprojekt-kode')
+from readHumanData import readHumanData
 
 
-
-
+k = readHumanData('data.txt')
