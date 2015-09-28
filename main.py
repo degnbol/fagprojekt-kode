@@ -17,7 +17,7 @@ os.chdir(projectPath)
 # importer hjælpefunktioner
 from readHLA import readHLA
 from logTransform import logTransform
-from peptideToBinary import peptideToBinary
+from createInputLayer import createInputLayer
 from forward import forward
 
 # indlæs sekvenser og hvor godt de binder til mhc proteinet
@@ -27,17 +27,20 @@ sequence, meas = readHLA('data.txt')
 meas = logTransform(meas)
 
 # bare for sjov, så man kan se fordelingen af binding affinities
-plot.hist(meas)
+plot.hist(meas, bins = 30)
 
 # lav en tilfældig sekvens om til binær
-inputLayer = peptideToBinary(sequence[0])
+inputLayer = createInputLayer(sequence[0])
 
 # vælg antal nodes i hidden layer
 numOfHiddenNodes = 8
 
 # lav vægt matrix med tilfældige værdier
-weightMatrix1 = [] # = randomMatrix(len(inputlayer), numOfHiddenNodes)
-weightMatrix2 = [] # = randomMatrix(numOfHiddenNodes, 1)
+
+weightMatrix1 = [] # = random(numOfHiddenNodes, len(inputLayer))
+weightMatrix2 = [] # = random(1, numOfHiddenNodes + 1) # plus 1 for bias
 
 # kør forward funktion med tilfældige vægt matricer
 outputLayer = forward(inputLayer, weightMatrix1, weightMatrix2)
+
+print(outputLayer)

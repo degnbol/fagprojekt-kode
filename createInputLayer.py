@@ -7,7 +7,7 @@ Created on Sun Sep 27 01:13:10 2015
 
 import numpy as np
 
-def peptideToBinary(sequence):
+def createInputLayer(sequence):
     
     peptideAlphabet = np.array(['A','C','D','E','F','G','H',
     'I','K','L','M','N','P','Q','R','S','T','V','W','Y'])
@@ -15,11 +15,14 @@ def peptideToBinary(sequence):
     sequenceLen = len(sequence)
     alphabetLen = len(peptideAlphabet)    
     
-    binarySequence = np.zeros(sequenceLen * alphabetLen, int)
+    inputLayer = np.zeros(sequenceLen * alphabetLen + 1)
     
     for i in range(sequenceLen):
         binary = peptideAlphabet == sequence[i]
-        binarySequence[i*alphabetLen:(i+1)*alphabetLen] = binary
+        inputLayer[i*alphabetLen:(i+1)*alphabetLen] = binary
     
-    return binarySequence
+    # bias    
+    inputLayer[len(inputLayer)-1] = 1
+    
+    return inputLayer
     

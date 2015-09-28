@@ -16,6 +16,9 @@ def forward(inputLayer, weightMatrix1, weightMatrix2):
     # brug blød threshold på hidden layer: y = 1/(1 + exp(-x))
     hiddenLayer = activation(hiddenLayer)
     
+    # bias
+    hiddenLayer = np.append(hiddenLayer, 1) 
+    
     # beregn resultat med hidden layer og w matrix 2 (som blot er liggende vektor)
     outputLayer = np.dot(weightMatrix2, hiddenLayer)
     
