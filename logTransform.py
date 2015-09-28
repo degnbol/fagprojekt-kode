@@ -9,6 +9,8 @@ import numpy as np
 
 def logTransform(meas):
     
+    meas = np.array(meas)    
+    
     big = 50000
     smallIndex = meas <= 1
     bigIndex = meas >= big

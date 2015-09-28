@@ -5,17 +5,12 @@ Created on Sat Sep 26 15:41:26 2015
 @author: Christian
 """
 
-import numpy as np
-
 def readHLA(path):
     
     sequence = []
-    meas = np.empty(0)
-
+    meas = []
     
     with open(path) as data:
-        
-        data.readline()        
         
         for line in data:
             l = line.split()
@@ -23,8 +18,7 @@ def readHLA(path):
             and l[1] == 'HLA-A-0201'
             and l[2] == '9'):
                 sequence.append(l[4])
-                meas = np.append(meas, float(l[6]))
+                meas.append(float(l[6]))
     
-   
     return sequence, meas
 
