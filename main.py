@@ -6,9 +6,12 @@ Created on Sat Sep 26 13:33:39 2015
 """
 
 import os
+import sys
 import matplotlib.pyplot as plot
 
-os.chdir('/Users/Christian/OneDrive/Fagprojekt/fagprojekt-kode')
+projectPath = os.path.dirname(os.path.abspath(sys.argv[0]))
+os.chdir(projectPath)
+
 from readHLA import readHLA
 from logTransform import logTransform
 from peptideToBinary import peptideToBinary
