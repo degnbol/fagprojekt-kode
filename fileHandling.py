@@ -22,3 +22,25 @@ def readHLA(path):
     
     return sequence, meas
 
+
+def readFasta(path):
+    
+    sequence = []
+    
+    """
+    
+    /////// læs fasta fil fra path. Brug sekvenser mellem linjerne der starter
+    med >
+    bruge alle læsesrammer med 9 aminosyrer fra denne samlede sekvens
+    
+    """
+    
+    return sequence
+    
+    
+def saveMatrix(matrix, name):
+    """
+    
+    /////// gem matrix i fil med navnet name på simpleste måde
+    
+    """
