@@ -41,20 +41,17 @@ def train(path, hiddenNodes, iterations, learningRate):
     weightMatrix1 = weight(hiddenNodes, numOfAminoAcids * sequenceLength + 1) # plus 1 for bias
     weightMatrix2 = weight(1, hiddenNodes + 1) # plus 1 for bias
     
-    # lav scrampled rækkefølge af sekvenserne
-    indexes = np.arange(len(sequence))
-    np.random.shuffle(indexes)
-
     for i in range(iterations):
+            
+        # lav scrampled rækkefølge af sekvenserne
+        indexes = np.arange(len(sequence))
+        np.random.shuffle(indexes)
         
         # next index
         index = indexes[i % len(indexes)]
         
-        # find nuværende sekvens. Med modulus sørges der for at vi bliver indenfor mængden
-        currentSequence = sequence[index]
-        
         # lav sekvens om til binær
-        inputLayer = sequenceUtils.createInputLayer(currentSequence)
+        inputLayer = sequenceUtils.createInputLayer(sequence[index])
         
         # kør forward funktion med vægt matricer
         hiddenLayer, outputLayer = forward(inputLayer, weightMatrix1, weightMatrix2)
@@ -90,3 +87,19 @@ def predict(path, weightMatrix1, weightMatrix2):
         
             print(sequence, outputLayer)
 
+
+
+
+
+
+'''
+
+
+lav cross validation
+
+1 fil -> 5 træningssæt og tilsvarende 5 test sæt
+
+
+
+
+'''
