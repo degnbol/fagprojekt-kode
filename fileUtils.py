@@ -14,6 +14,8 @@ def readHLA(path):
         
         for line in data:
             l = line.split()
+            
+            # tilføj info fra linjer, der lever op til kriterier
             if (l[0] == 'human'
             and l[1] == 'HLA-A-0201'
             and l[2] == '9'):
@@ -23,19 +25,23 @@ def readHLA(path):
     return sequence, meas
 
 
+
 def readFasta(path):
     
-    sequence = []
+    protein = []
     
-    """
+    with open(path) as data:
+           
+        for line in data:
+            if(line[0] == '>'):
+                # gør klar til et nyt protein
+                protein.append('')
+            else:
+                # gem sekvensdata på seneste protein
+                protein[len(protein)-1] += line.strip()
     
-    /////// læs fasta fil fra path. Brug sekvenser mellem linjerne der starter
-    med >
-    bruge alle læsesrammer med 9 aminosyrer fra denne samlede sekvens
-    
-    """
-    
-    return sequence
+    return protein
+
     
     
 def saveMatrix(matrix, name):

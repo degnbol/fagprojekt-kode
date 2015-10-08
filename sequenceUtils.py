@@ -26,3 +26,14 @@ def createInputLayer(sequence):
     
     return inputLayer
     
+
+# lav alle mulige kombinationer af 9 lange sekvenser fra en større sekvens
+def openReadingFrames(sequence):
+        
+    frameLength = 9
+    openFrames = []
+
+    for i in range(len(sequence) - frameLength):
+        openFrames.append(sequence[i:i+frameLength])
+
+    return openFrames

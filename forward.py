@@ -6,7 +6,7 @@ Created on Mon Sep 28 18:57:30 2015
 """
 
 import numpy as np
-from activation import activation
+from threshold import smoothThreshold
 
 def forward(inputLayer, weightMatrix1, weightMatrix2):
             
@@ -14,7 +14,7 @@ def forward(inputLayer, weightMatrix1, weightMatrix2):
     hiddenLayer = np.dot(weightMatrix1, inputLayer)
     
     # brug blød threshold på hidden layer: y = 1/(1 + exp(-x))
-    hiddenLayer = activation(hiddenLayer)
+    hiddenLayer = smoothThreshold(hiddenLayer)
     
     # bias
     hiddenLayer = np.append(hiddenLayer, 1) 
@@ -23,6 +23,6 @@ def forward(inputLayer, weightMatrix1, weightMatrix2):
     outputLayer = np.dot(weightMatrix2, hiddenLayer)
     
     # brug blød threshold på resultat
-    outputLayer = activation(outputLayer)    
+    outputLayer = smoothThreshold(outputLayer)    
     
-    return outputLayer
+    return hiddenLayer, outputLayer
