@@ -13,4 +13,4 @@ def smoothThreshold(s):
 # for s ved isolation fra samme udtryk. På den måde er vi fri for at lave
 # et mellemtrin i beregningerne hvor s skal findes.
 def diffSmoothThreshold(x):
-    return -np.square(x) + x
+    return x * (1 - x)

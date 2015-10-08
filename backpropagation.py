@@ -5,6 +5,7 @@ Created on Tue Oct  6 22:15:18 2015
 @author: Christian
 """
 
+import numpy as np
 from threshold import diffSmoothThreshold
 
 
@@ -25,7 +26,11 @@ def backward(hiddenLayer, weightMatrix2, outputLayer, meas):
     
 def updateWeight(inputLayer, weightMatrix1, hiddenLayer, weightMatrix2, hiddenDelta, outputDelta, learningRate):
     
-    weightMatrix1 -= learningRate * inputLayer * hiddenDelta
-    weightMatrix2 -= learningRate * hiddenLayer * outputDelta
+    # there is only used the deltas from the hidden layer 1:8 since the bias is not made from the input layer
+    # it has to be converted to the matrix format to make sure it's a vertical vector and not just an array
+    hiddenDelta = np.matrix(hiddenDelta[0, 0:8]).T
+    
+    weightMatrix1 -= learningRate * hiddenDelta * inputLayer
+    weightMatrix2 -= learningRate * outputDelta * hiddenLayer
     
     return weightMatrix1, weightMatrix2

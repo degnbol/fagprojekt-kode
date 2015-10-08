@@ -42,11 +42,36 @@ def readFasta(path):
     
     return protein
 
+
+
+def readPeptides(path):
+    
+    sequence = []
+    
+    """
+    
+    /////// skriv noget
+    
+    """
+    
+    
+    return sequence
+    
     
     
 def saveMatrix(matrix, name):
     """
     
     /////// gem matrix i fil med navnet name på simpleste måde
+    
+    """
+    
+    
+    
+def loadMatrix(path):
+    
+    """
+    
+    /////// læs matrix i fil
     
     """

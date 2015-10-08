@@ -41,26 +41,31 @@ def train(path, hiddenNodes, iterations, learningRate):
     weightMatrix1 = weight(hiddenNodes, numOfAminoAcids * sequenceLength + 1) # plus 1 for bias
     weightMatrix2 = weight(1, hiddenNodes + 1) # plus 1 for bias
     
-    for i in range(iterations):
-            
+    for iteration in range(iterations):
+        
         # lav scrampled rækkefølge af sekvenserne
         indexes = np.arange(len(sequence))
         np.random.shuffle(indexes)
+
+        error = np.zeros(len(sequence))
         
-        # next index
-        index = indexes[i % len(indexes)]
+        for index in indexes:
+            
+            # lav sekvens om til binær
+            inputLayer = sequenceUtils.createInputLayer(sequence[index])
+            
+            # kør forward funktion med vægt matricer
+            hiddenLayer, outputLayer = forward(inputLayer, weightMatrix1, weightMatrix2)
+
+            error[index] = (outputLayer - meas[index])**2
         
-        # lav sekvens om til binær
-        inputLayer = sequenceUtils.createInputLayer(sequence[index])
+            # backpropergation
+            hiddenDelta, outputDelta = backpropagation.backward(hiddenLayer, weightMatrix2, outputLayer, meas[index])
+            
+            weightMatrix1, weightMatrix2 = backpropagation.updateWeight(inputLayer, weightMatrix1, hiddenLayer, weightMatrix2, hiddenDelta, outputDelta, learningRate)            
         
-        # kør forward funktion med vægt matricer
-        hiddenLayer, outputLayer = forward(inputLayer, weightMatrix1, weightMatrix2)
+        print(error.mean())
         
-        # backpropergation
-        hiddenDelta, outputDelta = backpropagation.backward(hiddenLayer, weightMatrix2, outputLayer, meas[index])
-        
-        weightMatrix1, weightMatrix2 = backpropagation.updateWeight(inputLayer, weightMatrix1, hiddenLayer, weightMatrix2, hiddenDelta, outputDelta, learningRate)
-    
     # gem vægt matricer
     fileUtils.saveMatrix(weightMatrix1, 'weightMatrix1')
     fileUtils.saveMatrix(weightMatrix2, 'weightMatrix2')
