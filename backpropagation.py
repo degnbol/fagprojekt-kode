@@ -8,29 +8,14 @@ Created on Tue Oct  6 22:15:18 2015
 import numpy as np
 from threshold import diffSmoothThreshold
 
-
-def backward(hiddenLayer, weightMatrix2, outputLayer, meas):
+def backward(previousLayer, nextWeight, nextDelta):
+    """
+    if there were more layers and nextWeight became quadratic this function would
+    need to be controled with matrix types instead of array types. Since we only
+    have one way of multiplying where the dimensions fits, we don't need to worry
+    about all that. Numpy takes care of it for us.
+    """
+    return diffSmoothThreshold(previousLayer) * np.dot(nextWeight, nextDelta)
     
-    # beregn delta for output laget. Se formel i mathtype dok.
-    # formel kommer fra at aflede fejlen i forhold til signalet.
-    # at det er signalet, kommer fra at kædereglen for diff gør det
-    # muligt at regne fejlen afledt i forhold til vægtene.
-    outputDelta = -2 * meas * diffSmoothThreshold(outputLayer)
-    
-    # vi går tilbage et skridt med formel fra caltech
-    hiddenDelta = diffSmoothThreshold(hiddenLayer) * weightMatrix2 * outputDelta
-    
-    return hiddenDelta, outputDelta
-    
-    
-    
-def updateWeight(inputLayer, weightMatrix1, hiddenLayer, weightMatrix2, hiddenDelta, outputDelta, learningRate):
-    
-    # there is only used the deltas from the hidden layer 1:8 since the bias is not made from the input layer
-    # it has to be converted to the matrix format to make sure it's a vertical vector and not just an array
-    hiddenDelta = np.matrix(hiddenDelta[0, 0:8]).T
-    
-    weightMatrix1 -= learningRate * hiddenDelta * inputLayer
-    weightMatrix2 -= learningRate * outputDelta * hiddenLayer
-    
-    return weightMatrix1, weightMatrix2
+def updateWeight(previousLayer, weight, nextDelta, learningRate):
+    return weight - learningRate * nextDelta * previousLayer

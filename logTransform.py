@@ -7,17 +7,17 @@ Created on Sat Sep 26 16:59:19 2015
 
 import numpy as np
 
-def logTransform(meas):
+def logTransform(target):
     
-    meas = np.array(meas)    
+    target = np.array(target)    
     
     big = 50000
-    smallIndex = meas <= 1
-    bigIndex = meas >= big
+    smallIndex = target <= 1
+    bigIndex = target >= big
     middleIndex = ~(smallIndex | bigIndex)
     
-    meas[smallIndex] = 1
-    meas[bigIndex] = 0
-    meas[middleIndex] = 1 - np.log(meas[middleIndex]) / np.log(big)
+    target[smallIndex] = 1
+    target[bigIndex] = 0
+    target[middleIndex] = 1 - np.log(target[middleIndex]) / np.log(big)
     
-    return meas
+    return target

@@ -28,18 +28,18 @@ import backpropagation
 def train(path, hiddenNodes, iterations, learningRate):
     
     # indlæs sekvenser og hvor godt de binder til mhc proteinet
-    sequence, meas = fileUtils.readHLA(path)
+    sequence, target = fileUtils.readHLA(path)
     
     # log transformer measurements så de er pænere tal
-    meas = logTransform(meas)
+    target = logTransform(target)
     
     # længden af sekvensbiderne og antallet er mulige amino syrer. Der er 20 normale.
     sequenceLength = 9
     numOfAminoAcids = 20
     
     # lav vægt matrix med tilfældige værdier
-    weightMatrix1 = weight(hiddenNodes, numOfAminoAcids * sequenceLength + 1) # plus 1 for bias
-    weightMatrix2 = weight(1, hiddenNodes + 1) # plus 1 for bias
+    weight1 = weight(hiddenNodes, numOfAminoAcids * sequenceLength + 1) # plus 1 for bias
+    weight2 = weight(1, hiddenNodes + 1) # plus 1 for bias
     
     for iteration in range(iterations):
         
@@ -51,29 +51,36 @@ def train(path, hiddenNodes, iterations, learningRate):
         
         for index in indexes:
             
-            # lav sekvens om til binær
+            # convert peptide sequence to quasi-binary
             inputLayer = sequenceUtils.createInputLayer(sequence[index])
             
-            # kør forward funktion med vægt matricer
-            hiddenLayer, outputLayer = forward(inputLayer, weightMatrix1, weightMatrix2)
+            # run the forward function. returns the hidden layer, the output layer before and after activation
+            preHiddenLayer, hiddenLayer, preOutputLayer, outputLayer = forward(inputLayer, weight1, weight2)
 
-            error[index] = (outputLayer - meas[index])**2
+            # save the error
+            error[index] = 1/2 * (outputLayer - target[index])**2
+            errorDelta = outputLayer - target[index]
         
-            # backpropergation
-            hiddenDelta, outputDelta = backpropagation.backward(hiddenLayer, weightMatrix2, outputLayer, meas[index])
+            # backpropagation
+            outputDelta = backpropagation.backward(hiddenLayer, 1, errorDelta)
             
-            weightMatrix1, weightMatrix2 = backpropagation.updateWeight(inputLayer, weightMatrix1, hiddenLayer, weightMatrix2, hiddenDelta, outputDelta, learningRate)            
+            weight2 = backpropagation.updateWeight(hiddenLayer, weight2, outputDelta, learningRate)
+            
+            hiddenDelta = backpropagation.backward(inputLayer, weight2, outputDelta)
+            
+            weight1 = backpropagation.updateWeight(inputLayer, weight1, hiddenDelta, learningRate)
+            
         
         print(error.mean())
         
     # gem vægt matricer
-    fileUtils.saveMatrix(weightMatrix1, 'weightMatrix1')
-    fileUtils.saveMatrix(weightMatrix2, 'weightMatrix2')
+    fileUtils.saveMatrix(weight1, 'weight1')
+    fileUtils.saveMatrix(weight2, 'weight2')
     
     
     
 # tager input path for stien til en fasta fil
-def predict(path, weightMatrix1, weightMatrix2): 
+def predict(path, weight1, weight2): 
     
     # indlæs sekvenser
     proteins = fileUtils.readFasta(path)
@@ -88,13 +95,14 @@ def predict(path, weightMatrix1, weightMatrix2):
             inputLayer = sequenceUtils.createInputLayer(sequence)
             
             # kør forward funktion med vægt matricer
-            outputLayer = forward(inputLayer, weightMatrix1, weightMatrix2)[1]
+            outputLayer = forward(inputLayer, weight1, weight2)[1]
         
             print(sequence, outputLayer)
 
 
 
 
+train('mhcSequences.txt',8,100,0.001)
 
 
 '''
