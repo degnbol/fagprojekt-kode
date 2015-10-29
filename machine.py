@@ -9,6 +9,7 @@ Created on Sat Sep 26 13:33:39 2015
 import os
 import sys
 import numpy as np
+import argparse
 
 # ændr sti så vi kan finde hjælpefunktioner
 projectPath = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -22,10 +23,26 @@ from weight import weight
 from forward import forward
 import backpropagation
 
+# argument parsing
+descriptionOfArguments = 'ANN that finds correlations between peptides and their measurements.'
+helpForPath = 'a path to a file with peptide data'
+helpForWeightPath = 'two paths that weights are saved to when training or loaded from when predicting (default is "weight1" and "weight2")'
+helpForTrain = 'train the machine with the data (default: prediction on the data)'
+helpForHiddenNodes = 'number of hidden nodes when training (default is 8)'
+helpForIterations = 'number of iterations when training (default is 10)'
+helpForLearningRate = 'the step size of changes when training (default is 0.01)'
 
+parser = argparse.ArgumentParser(description = descriptionOfArguments)
+parser.add_argument('path', help = helpForPath)
+parser.add_argument('--weightPath', nargs = 2, default = ['weight1', 'weight2'], help = helpForWeightPath)
+parser.add_argument('-t', '--train', action = 'store_true', help = helpForTrain)
+parser.add_argument('--hiddenNodes', default = 8, type = int, help = helpForHiddenNodes)
+parser.add_argument('--iterations', default = 10, type = int, help = helpForIterations)
+parser.add_argument('--learningRate', default = 0.001, type = float, help = helpForLearningRate)
+args = parser.parse_args()
 
 # tager input path for stien til en fil med HLA info
-def train(path, hiddenNodes, iterations, learningRate):
+def train(path, weightPath1, weightPath2, hiddenNodes, iterations, learningRate):
     
     # indlæs sekvenser og hvor godt de binder til mhc proteinet
     sequence, target = fileUtils.readHLA(path)
@@ -74,16 +91,18 @@ def train(path, hiddenNodes, iterations, learningRate):
         print(error.mean())
         
     # gem vægt matricer
-    fileUtils.saveMatrix(weight1, 'weight1')
-    fileUtils.saveMatrix(weight2, 'weight2')
+    fileUtils.saveMatrix(weight1, weightPath1)
+    fileUtils.saveMatrix(weight2, weightPath2)
     
     
     
 # tager input path for stien til en fasta fil
-def predict(path, weight1, weight2): 
+def predict(path, weightPath1, weightPath2): 
     
-    # indlæs sekvenser
+    # read files
     proteins = fileUtils.readFasta(path)
+    weight1 = fileUtils.loadMatrix(weightPath1)
+    weight2 = fileUtils.loadMatrix(weightPath2)
     
     for protein in proteins:  
         
@@ -101,8 +120,10 @@ def predict(path, weight1, weight2):
 
 
 
-
-train('mhcSequences.txt',8,100,0.001)
+if(args.train):
+    train(args.path, args.weightPath[0], args.weightPath[1], args.hiddenNodes, args.iterations, args.learningRate)
+else:
+    predict(args.path, args.weightPath[0], args.weightPath[1])
 
 
 '''
