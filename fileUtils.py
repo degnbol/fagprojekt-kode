@@ -5,6 +5,8 @@ Created on Sat Sep 26 15:41:26 2015
 @author: Christian
 """
 
+import numpy as np
+
 def readHLA(path):
     
     sequence = []
@@ -22,7 +24,7 @@ def readHLA(path):
                 sequence.append(l[4])
                 meas.append(float(l[6]))
     
-    return sequence, meas
+    return np.array(sequence), np.array(meas)
 
 
 

@@ -25,4 +25,4 @@ def forward(inputLayer, weight1, weight2):
     # brug blød threshold på resultat
     outputLayer = smoothThreshold(preOutputLayer)    
     
-    return preHiddenLayer, hiddenLayer, preOutputLayer, outputLayer
+    return hiddenLayer, outputLayer
