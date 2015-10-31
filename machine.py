@@ -40,7 +40,7 @@ parser.add_argument('-t', '--train', action = 'store_true', help = helpForTrain)
 parser.add_argument('--hiddenNodes', default = 8, type = int, help = helpForHiddenNodes)
 parser.add_argument('--epocs', default = 10, type = int, help = helpForEpocs)
 parser.add_argument('--learningRate', default = 0.001, type = float, help = helpForLearningRate)
-args = parser.parse_args()
+args = parser.parse_args("mhcSequences.txt -t --epocs 5 --learningRate 0.01".split())
 
 # tager input path for stien til en fil med HLA info
 def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate):
@@ -110,13 +110,17 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate):
             
             weight1 = backpropagation.updateWeight(inputLayer, weight1, hiddenDelta, learningRate)
             
-            # save weights
-            weights1.append(weight1)
-            weights2.append(weight2)
             
+        # save weights
+        weights1.append(weight1)
+        weights2.append(weight2)        
         
         trainError[epoc] = error.mean()
-        print(trainError[epoc])
+        
+        if(epoc % 10 == 0):           
+            percent = (int) (epoc/epocs*100)
+            print("Error: {}. {}% complete.".format(trainError[epoc], percent))
+        
         
     print("Training set complete.")
     print("Errors from validation set:")
@@ -139,19 +143,27 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate):
 
             
         valError[epoc] = error.mean()
-        print(valError[epoc])
+        
+        if(epoc % 10 == 0):           
+            percent = (int) (epoc/epocs*100)
+            print("Error: {}. {}% complete.".format(valError[epoc], percent))
     
     
     print("Validation set complete.")
     
     # plot
-    plot.plot(np.arange(epocs), trainError, np.arange(epocs), valError)
+    plot.plot(trainError, label = "Training set")
+    plot.plot(valError, label = "Validation set")
+    plot.legend()
+    plot.xlabel("epoc")
+    plot.ylabel("error")
     plot.show()
-    
         
-    # save the weight matrices. Currently saves the last ones, but I guess it should be the best ones
-    fileUtils.saveMatrix(weight1, weightPath1)
-    fileUtils.saveMatrix(weight2, weightPath2)
+    # save the bet weight matrices
+    best = (int) (np.where(valError == min(valError))[0])
+    print("The minimum error of the validation set is at epoc {}".format(best))
+    fileUtils.saveMatrix(weights1[best], weightPath1)
+    fileUtils.saveMatrix(weights2[best], weightPath2)
     
     
     
