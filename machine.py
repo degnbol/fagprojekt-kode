@@ -27,23 +27,25 @@ import backpropagation
 # argument parsing
 descriptionOfArguments = 'ANN that finds correlations between peptides and their measurements.'
 helpForPath = 'a path to a file with peptide data'
-helpForWeightPath = 'two paths that weights are saved to when training or loaded from when predicting (default is "weight1" and "weight2")'
+helpForWeightPath = 'two paths that weights are saved to when training or loaded from when predicting (default is "weight1.npy" and "weight2.npy")'
 helpForTrain = 'train the machine with the data (default: prediction on the data)'
 helpForHiddenNodes = 'number of hidden nodes when training (default is 8)'
 helpForEpocs = 'number of iterations through the sets when training (default is 10)'
 helpForLearningRate = 'the step size of changes when training (default is 0.01)'
+helpForProceed = 'continue on the weight matrices in the specified files (default is starting with random weights)'
 
 parser = argparse.ArgumentParser(description = descriptionOfArguments)
 parser.add_argument('path', help = helpForPath)
-parser.add_argument('--weightPath', nargs = 2, default = ['weight1', 'weight2'], help = helpForWeightPath)
+parser.add_argument('--weightPath', nargs = 2, default = ['weight1.npy', 'weight2.npy'], help = helpForWeightPath)
 parser.add_argument('-t', '--train', action = 'store_true', help = helpForTrain)
 parser.add_argument('--hiddenNodes', default = 8, type = int, help = helpForHiddenNodes)
 parser.add_argument('--epocs', default = 10, type = int, help = helpForEpocs)
 parser.add_argument('--learningRate', default = 0.001, type = float, help = helpForLearningRate)
-args = parser.parse_args("mhcSequences.txt -t --epocs 5 --learningRate 0.01".split())
+parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
+args = parser.parse_args("mhcSequences.txt -t --epocs 100 --learningRate 0.00005 --proceed".split())
 
 # tager input path for stien til en fil med HLA info
-def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate):
+def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate, proceed):
     
     # read sequences and their measured binding affinities
     allSequences, allTargets = fileUtils.readHLA(path)
@@ -68,13 +70,17 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate):
     mer = 9
     numOfAminoAcids = 20
     
-    # create weight matrix with random values
-    weight1 = weight(hiddenNodes, numOfAminoAcids * mer + 1) # plus 1 for bias
-    weight2 = weight(1, hiddenNodes + 1) # plus 1 for bias    
+    # create weight matrix with random values or load the files
+    if(proceed):
+        weight1 = np.load(weightPath1)
+        weight2 = np.load(weightPath2)
+    else:
+        weight1 = weight(hiddenNodes, numOfAminoAcids * mer + 1) # plus 1 for bias
+        weight2 = weight(1, hiddenNodes + 1) # plus 1 for bias    
     
     weights1 = []    
     weights2 = []    
-    weights1.append(weight1)   
+    weights1.append(weight1)
     weights2.append(weight2)
     
     print("Starting training.")
@@ -162,8 +168,8 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate):
     # save the bet weight matrices
     best = (int) (np.where(valError == min(valError))[0])
     print("The minimum error of the validation set is at epoc {}".format(best))
-    fileUtils.saveMatrix(weights1[best], weightPath1)
-    fileUtils.saveMatrix(weights2[best], weightPath2)
+    np.save(weightPath1, weights1[best])
+    np.save(weightPath2, weights2[best])
     
     
     
@@ -192,7 +198,7 @@ def predict(path, weightPath1, weightPath2):
 
 
 if(args.train):
-    train(args.path, args.weightPath[0], args.weightPath[1], args.hiddenNodes, args.epocs, args.learningRate)
+    train(args.path, args.weightPath[0], args.weightPath[1], args.hiddenNodes, args.epocs, args.learningRate, args.proceed)
 else:
     predict(args.path, args.weightPath[0], args.weightPath[1])
 
