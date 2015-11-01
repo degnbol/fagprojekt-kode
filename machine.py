@@ -42,19 +42,20 @@ parser.add_argument('--hiddenNodes', default = 8, type = int, help = helpForHidd
 parser.add_argument('--epocs', default = 10, type = int, help = helpForEpocs)
 parser.add_argument('--learningRate', default = 0.001, type = float, help = helpForLearningRate)
 parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
-args = parser.parse_args("mhcSequences.txt -t --epocs 100 --learningRate 0.00005 --proceed".split())
+args = parser.parse_args()
+#args = parser.parse_args("mhcSequences.txt -t --epocs 100 --learningRate 0.00005 --proceed".split())
 
 # takes the path for the HLA file as input 
 def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate, proceed):
     
     # read sequences and their measured binding affinities
     allSequences, allTargets = fileUtils.readHLA(path)
-    numOfSequences = len(allSequences)
     
     # log transformer measurements så de er pænere tal
     allTargets = logTransform(allTargets)
     
     # divide the data into training set and validation set
+    numOfSequences = len(allSequences)
     indexes = np.arange(numOfSequences)
     np.random.shuffle(indexes)
     numOfTrain = (int) (numOfSequences * 0.8) # 80 % is for training
@@ -105,9 +106,10 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate, proc
 
             # save the error
             error[index] = 1/2 * (outputLayer - trainTarget[index])**2
+
+            # backpropagation            
             errorDelta = outputLayer - trainTarget[index]
-        
-            # backpropagation
+            
             outputDelta = backpropagation.backward(hiddenLayer, 1, errorDelta)
             
             weight2 = backpropagation.updateWeight(hiddenLayer, weight2, outputDelta, learningRate)
@@ -165,7 +167,7 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate, proc
     plot.ylabel("error")
     plot.show()
         
-    # save the bet weight matrices
+    # save the best weight matrices
     best = (int) (np.where(valError == min(valError))[0])
     print("The minimum error of the validation set is at epoc {}".format(best))
     np.save(weightPath1, weights1[best])
@@ -178,8 +180,8 @@ def predict(path, weightPath1, weightPath2):
     
     # read files
     proteins = fileUtils.readFasta(path)
-    weight1 = fileUtils.loadMatrix(weightPath1)
-    weight2 = fileUtils.loadMatrix(weightPath2)
+    weight1 = np.load(weightPath1)
+    weight2 = np.load(weightPath2)
     
     for protein in proteins:  
         
