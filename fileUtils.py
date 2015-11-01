@@ -58,22 +58,3 @@ def readPeptides(path):
     
     
     return sequence
-    
-    
-    
-def saveMatrix(matrix, name):
-    """
-    
-    /////// gem matrix i fil med navnet name på simpleste måde
-    
-    """
-    
-    
-    
-def loadMatrix(path):
-    
-    """
-    
-    /////// læs matrix i fil
-    
-    """
