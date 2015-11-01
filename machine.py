@@ -5,18 +5,18 @@ Created on Sat Sep 26 13:33:39 2015
 @author: Christian, Marianne, Kathrine & Cecilia
 """
 
-# importer ting
+# import packages
 import os
 import sys
 import numpy as np
 import argparse
 import matplotlib.pyplot as plot
 
-# ændr sti så vi kan finde hjælpefunktioner
+# change path so we can find help functions
 projectPath = os.path.dirname(os.path.abspath(sys.argv[0]))
 os.chdir(projectPath)
 
-# importer hjælpefunktioner
+# import help functions
 import fileUtils
 from logTransform import logTransform
 import sequenceUtils
@@ -44,7 +44,7 @@ parser.add_argument('--learningRate', default = 0.001, type = float, help = help
 parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
 args = parser.parse_args("mhcSequences.txt -t --epocs 100 --learningRate 0.00005 --proceed".split())
 
-# tager input path for stien til en fil med HLA info
+# takes the path for the HLA file as input 
 def train(path, weightPath1, weightPath2, hiddenNodes, epocs, learningRate, proceed):
     
     # read sequences and their measured binding affinities
