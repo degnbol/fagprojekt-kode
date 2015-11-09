@@ -9,7 +9,7 @@ import numpy as np
 from threshold import smoothThreshold
 
 def forward(inputLayer, weight1, weight2):
-            
+    
     # beregn foreløbig hidden layer vha. w matrix og binær sekvens
     preHiddenLayer = np.dot(weight1, inputLayer)
     
