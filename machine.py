@@ -18,7 +18,7 @@ os.chdir(projectPath)
 
 # importer hjælpefunktioner
 import fileUtils
-from logTransform import logTransform
+import logTransform
 import sequenceUtils
 from weight import weight
 from forward import forward
@@ -30,34 +30,35 @@ helpForPath = 'a path to a file with peptide data'
 helpForWeightPath = 'two paths that weights are saved to when training or loaded from when predicting (default is "weight1.npy" and "weight2.npy")'
 helpForTrain = 'train the machine with the data (default: prediction on the data)'
 helpForHiddenNodes = 'number of hidden nodes when training (default is 8)'
-helpForEpochs = 'number of iterations through the sets when training (default is 10)'
+helpForEpochs = 'number of iterations through the sets when training (default is 500)'
 helpForLearningRate = 'the step size of changes when training (default is 0.01)'
 helpForProceed = 'continue on the weight matrices in the specified files (default is starting with random weights)'
+helpForMethod = 'the method for loading data in prediction. Default is fasta. Other options are raw and hla.'
 
 parser = argparse.ArgumentParser(description = descriptionOfArguments)
 parser.add_argument('path', help = helpForPath)
 parser.add_argument('--weightPath', nargs = 2, default = ['weight1.npy', 'weight2.npy'], help = helpForWeightPath)
 parser.add_argument('-t', '--train', action = 'store_true', help = helpForTrain)
 parser.add_argument('--hiddenNodes', default = 8, type = int, help = helpForHiddenNodes)
-parser.add_argument('--epochs', default = 10, type = int, help = helpForEpochs)
-parser.add_argument('--learningRate', default = 0.001, type = float, help = helpForLearningRate)
+parser.add_argument('--epochs', default = 500, type = int, help = helpForEpochs)
+parser.add_argument('--learningRate', default = 0.01, type = float, help = helpForLearningRate)
 parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
-args = parser.parse_args("mhcSequences.txt -t --epochs 500 --learningRate 0.01".split())
+parser.add_argument('--method', default = 'fasta', help = helpForMethod)
+args = parser.parse_args("mhcSequences.txt -t --epochs 0 --proceed".split())
 
 
 # set seed to be able to reproduce results
-np.random.seeed(1234)
+np.random.seed(1234)
 
 
 # tager input path for stien til en fil med HLA info
 def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, proceed):
     
     # read sequences and their measured binding affinities
-    allSequences, allTargets = fileUtils.readHLA(path)
+    allSequences, allTargets = fileUtils.readHLA(path)  
     
-    # log transformer measurements så de er pænere tal
-    allTargets = logTransform(allTargets)
-      
+    # log transform the data to fit between 0 and 1
+    allTargets = logTransform.transform(allTargets)    
     
     # divide the data into training set, validation set and evaluation set
     numOfSequences = len(allSequences)    
@@ -91,6 +92,7 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     bestWeight1 = weight1
     bestWeight2 = weight2
     bestError = 999 # just a large number so any validation will be better
+    bestEpoch = 0
     
     print("Starting training and validation.")   
     
@@ -157,15 +159,13 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
             bestWeight1 = weight1
             bestWeight2 = weight2
             bestError = valError[epoch]
+            bestEpoch = epoch
         
         
         if(epoch % 10 == 0):           
             percent = (int) (epoch/epochs*100)
-            print("Error: {:.8f}. {:2}% complete.".format(valError[epoch], percent))
-        
-        if(epoch % 10 == 0):           
-            percent = (int) (epoch/epochs*100)
-            print("Error: {:.8f}. {:2}% complete.".format(trainError[epoch], percent))
+            print("Training error: {:.8f}. Validation error: {:.8f}. {:2}% complete."
+            .format(trainError[epoch], valError[epoch], percent))
         
         
     print("Training and validation complete.")
@@ -178,16 +178,14 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     plot.xlabel("epoch")
     plot.ylabel("error")
     plot.title("Validation")
+    plot.savefig('validation.png', bbox_inches='tight')    
     plot.show()
-    plot.savefig('validation.png', bbox_inches='tight')
-        
-    # save the bet weight matrices
-    best = (int) (np.where(valError == min(valError))[0])
-    print("The minimum error of the validation set is at epoch {}".format(best))
-    weight1 = weights1[best]
-    weight2 = weights2[best]
-    np.save(weightPath1, weight1)
-    np.save(weightPath2, weight2)
+            
+    # save the best weight matrices
+    np.save(weightPath1, bestWeight1)
+    np.save(weightPath2, bestWeight2)
+    print("The minimum error of the validation set is at epoch {}. The validation error is {}."
+    .format(bestEpoch, bestError))
     
     #evaluation   
     print("Predicting on evaluation set.")
@@ -198,7 +196,7 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
         inputLayer = sequenceUtils.createInputLayer(evalSequence[index])
         
         # run the forward function
-        hiddenLayer, outputLayer = forward(inputLayer, weight1, weight2)
+        hiddenLayer, outputLayer = forward(inputLayer, bestWeight1, bestWeight2)
         
         evalPrediction[index] = outputLayer
 
@@ -208,37 +206,69 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     plot.xlabel("target")
     plot.ylabel("prediction")
     plot.title("Evaluation")
+    plot.savefig('evaluationLog.png', bbox_inches='tight')    
     plot.show()
-    plot.savefig('evaluation.png', bbox_inches='tight')
+    
+    # how correlated is it?
+    corr = np.corrcoef(evalTarget, evalPrediction)[1,0]
+    print("The Pearson correlation coefficient is {}.".format(corr))
+    
+    # plot comparison again, now inverse log transfomed back
+    evalPrediction = logTransform.invTransform(evalPrediction)
+    evalTarget = logTransform.invTransform(evalTarget)
+    plot.plot(evalTarget, evalPrediction, '.')
+    plot.xlabel("target")
+    plot.ylabel("prediction")
+    plot.title("Evaluation")
+    plot.savefig('evaluation.png', bbox_inches='tight')    
+    plot.show()
     
 
  
 # tager input path for stien til en fasta fil
-def predict(path, weightPath1, weightPath2):
+def predict(path, weightPath1, weightPath2, method):
     
-    # read files
-    proteins = fileUtils.readFasta(path)
-    weight1 = fileUtils.loadMatrix(weightPath1)
-    weight2 = fileUtils.loadMatrix(weightPath2)
+    predictionPath = "predictions.npy"
     
-    for protein in proteins:  
+    predictions = []    
+    limit = 500
+    
+    # load
+    weight1 = np.load(weightPath1)
+    weight2 = np.load(weightPath2)
+    
+    method = method.lower()
+    if(method == 'fasta'):
+        proteins = fileUtils.readFasta(path)
         
-        sequences = sequenceUtils.openReadingFrames(protein)        
+        proteinPos = 0        
         
-        for sequence in sequences:
+        for protein in proteins:  
             
-             # lav sekvens om til binær
-            inputLayer = sequenceUtils.createInputLayer(sequence)
+            sequences = sequenceUtils.openReadingFrames(protein)        
             
-            # kør forward funktion med vægt matricer
-            outputLayer = forward(inputLayer, weight1, weight2)[1]
-        
-            print(sequence, outputLayer)
+            for pos in range(len(sequences)):
+                
+                 # lav sekvens om til binær
+                inputLayer = sequenceUtils.createInputLayer(sequences[pos])
+                
+                # forward
+                outputLayer = forward(inputLayer, weight1, weight2)[1]
+                outputLayer = logTransform.invTransform(outputLayer)                
+                
+                if(outputLayer < limit):
+                    predictions.append(proteinPos + pos)
+            
+            proteinPos += len(protein)
+                
+                
+    np.save(predictionPath, predictions)
+    print("There is {} predicted epitopes.".format(len(predictions)))   
 
 
 
 if(args.train):
     train(args.path, args.weightPath[0], args.weightPath[1], args.hiddenNodes, args.epochs, args.learningRate, args.proceed)
 else:
-    predict(args.path, args.weightPath[0], args.weightPath[1])
+    predict(args.path, args.weightPath[0], args.weightPath[1], args.method)
 

@@ -57,13 +57,9 @@ def readPeptides(path, mer):
             
             line = line.upper()
             
-            if (length(line) == 9
-            sequence.append(line)
+            if (len(line) == 9):
+                sequence.append(line)
             
-        else:
-            
-            
-            )
 
     return sequence
     
