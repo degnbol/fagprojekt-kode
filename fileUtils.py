@@ -50,12 +50,20 @@ def readPeptides(path, mer):
     
     sequence = []
     
-    """
-    
-    /////// skriv noget
-    
-    """
-    
-    
+    with open(path) as data:
+        
+
+        for line in data:
+            
+            line = line.upper()
+            
+            if (length(line) == 9
+            sequence.append(line)
+            
+        else:
+            
+            
+            )
+
     return sequence
     
