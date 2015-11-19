@@ -42,32 +42,39 @@ parser.add_argument('--hiddenNodes', default = 8, type = int, help = helpForHidd
 parser.add_argument('--epochs', default = 10, type = int, help = helpForEpochs)
 parser.add_argument('--learningRate', default = 0.001, type = float, help = helpForLearningRate)
 parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
-args = parser.parse_args("mhcSequences.txt -t --epochs 2500 --learningRate 0.0002".split())
+args = parser.parse_args("mhcSequences.txt -t --epochs 500 --learningRate 0.01".split())
+
+
+# set seed to be able to reproduce results
+np.random.seeed(1234)
+
 
 # tager input path for stien til en fil med HLA info
 def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, proceed):
     
     # read sequences and their measured binding affinities
     allSequences, allTargets = fileUtils.readHLA(path)
-    numOfSequences = len(allSequences)
     
     # log transformer measurements så de er pænere tal
     allTargets = logTransform(allTargets)
+      
     
-    # divide the data into training set and validation set
+    # divide the data into training set, validation set and evaluation set
+    numOfSequences = len(allSequences)    
     indexes = np.arange(numOfSequences)
     np.random.shuffle(indexes)
     numOfTrain = (int) (numOfSequences * 0.7) # 70 % is for training
     trainSequence = allSequences[indexes[0:numOfTrain]]
-    trainTarget = allTargets[indexes[0:numOfTrain]]
-    trainError = np.zeros(epochs)
+    trainTarget = allTargets[indexes[0:numOfTrain]]    
     numOfVal = (int) (numOfSequences * 0.2) # 20 % is for vaidation
     valSequence = allSequences[indexes[numOfTrain:(numOfTrain + numOfVal)]]
     valTarget = allTargets[indexes[numOfTrain:(numOfTrain + numOfVal)]]
-    valError = np.zeros(epochs)
     evalSequence = allSequences[indexes[(numOfTrain + numOfVal):numOfSequences]]
     evalTarget = allTargets[indexes[(numOfTrain + numOfVal):numOfSequences]]
     evalPrediction = np.zeros(len(evalSequence))
+    
+    trainError = np.zeros(epochs)   
+    valError = np.zeros(epochs)
     
     # længden af sekvensbiderne og antallet er mulige aminosyrer. Der er 20 normale.
     mer = 9
@@ -81,16 +88,15 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
         weight1 = weight(hiddenNodes, numOfAminoAcids * mer + 1) # plus 1 for bias
         weight2 = weight(1, hiddenNodes + 1) # plus 1 for bias    
     
-    weights1 = []    
-    weights2 = []    
-    weights1.append(weight1)
-    weights2.append(weight2)
+    bestWeight1 = weight1
+    bestWeight2 = weight2
+    bestError = 999 # just a large number so any validation will be better
     
-    print("Starting training.")
-    print("Errors from training set:")   
+    print("Starting training and validation.")   
     
-    # train on training set
     for epoch in range(epochs):
+        
+        # train on training set
         
         # make scrampled order of sequences
         indexes = np.arange(numOfTrain)
@@ -121,24 +127,13 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
             hiddenDelta = hiddenDelta[0,0:hiddenNodes]
             
             weight1 = backpropagation.updateWeight(inputLayer, weight1, hiddenDelta, learningRate)
-            
-            
-        # save weights
-        weights1.append(weight1)
-        weights2.append(weight2)        
-        
+
+
         trainError[epoch] = error.mean()
         
-        if(epoch % 10 == 0):           
-            percent = (int) (epoch/epochs*100)
-            print("Error: {:.8f}. {:2}% complete.".format(trainError[epoch], percent))
         
         
-    print("Training set complete.")
-    print("Errors from validation set:")
-    
-    #validate on validation set
-    for epoch in range(epochs):
+        # validation
         
         error = np.zeros(numOfVal)
         
@@ -148,7 +143,7 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
             inputLayer = sequenceUtils.createInputLayer(valSequence[index])
             
             # run the forward function
-            hiddenLayer, outputLayer = forward(inputLayer, weights1[epoch], weights2[epoch])
+            hiddenLayer, outputLayer = forward(inputLayer, weight1, weight2)
 
             # save the error
             error[index] = 1/2 * (outputLayer - valTarget[index])**2
@@ -156,12 +151,25 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
             
         valError[epoch] = error.mean()
         
+
+        # find the best weight matrices so far
+        if(valError[epoch] < bestError):
+            bestWeight1 = weight1
+            bestWeight2 = weight2
+            bestError = valError[epoch]
+        
+        
         if(epoch % 10 == 0):           
             percent = (int) (epoch/epochs*100)
             print("Error: {:.8f}. {:2}% complete.".format(valError[epoch], percent))
+        
+        if(epoch % 10 == 0):           
+            percent = (int) (epoch/epochs*100)
+            print("Error: {:.8f}. {:2}% complete.".format(trainError[epoch], percent))
+        
+        
+    print("Training and validation complete.")
     
-    
-    print("Validation set complete.")
     
     # plot error
     plot.plot(trainError, label = "Training set")
@@ -169,7 +177,9 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     plot.legend()
     plot.xlabel("epoch")
     plot.ylabel("error")
+    plot.title("Validation")
     plot.show()
+    plot.savefig('validation.png', bbox_inches='tight')
         
     # save the bet weight matrices
     best = (int) (np.where(valError == min(valError))[0])
@@ -197,7 +207,9 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     plot.plot(evalTarget, evalPrediction, '.')
     plot.xlabel("target")
     plot.ylabel("prediction")
+    plot.title("Evaluation")
     plot.show()
+    plot.savefig('evaluation.png', bbox_inches='tight')
     
 
  
