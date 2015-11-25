@@ -44,7 +44,15 @@ parser.add_argument('--epochs', default = 500, type = int, help = helpForEpochs)
 parser.add_argument('--learningRate', default = 0.01, type = float, help = helpForLearningRate)
 parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
 parser.add_argument('--method', default = 'fasta', help = helpForMethod)
-args = parser.parse_args("mhcSequences.txt -t --epochs 0 --proceed".split())
+
+# train with this line uncommented
+#args = parser.parse_args("data/mhcSequences.txt -t --epochs 0 --proceed".split())
+
+# predict with this line uncommented
+args = parser.parse_args("data/hivCodingSequences.txt".split())
+
+# have the program be run from terminal with this line uncommented
+#args = parser.parse_args()
 
 
 # set seed to be able to reproduce results
@@ -228,7 +236,7 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
 # tager input path for stien til en fasta fil
 def predict(path, weightPath1, weightPath2, method):
     
-    predictionPath = "predictions.npy"
+    predictionPath = "predictions.txt"
     
     predictions = []    
     limit = 500
@@ -241,11 +249,9 @@ def predict(path, weightPath1, weightPath2, method):
     if(method == 'fasta'):
         proteins = fileUtils.readFasta(path)
         
-        proteinPos = 0        
-        
-        for protein in proteins:  
+        for proteinId in range(len(proteins)):  
             
-            sequences = sequenceUtils.openReadingFrames(protein)        
+            sequences = sequenceUtils.openReadingFrames(proteins[proteinId])        
             
             for pos in range(len(sequences)):
                 
@@ -256,13 +262,12 @@ def predict(path, weightPath1, weightPath2, method):
                 outputLayer = forward(inputLayer, weight1, weight2)[1]
                 outputLayer = logTransform.invTransform(outputLayer)                
                 
-                if(outputLayer < limit):
-                    predictions.append(proteinPos + pos)
+                if(outputLayer <= limit):
+                    # plus one, since both are zero indexed
+                    predictions.append([proteinId + 1, pos + 1])
             
-            proteinPos += len(protein)
                 
-                
-    np.save(predictionPath, predictions)
+    np.savetxt(predictionPath, np.array(predictions), fmt = '%d', delimiter = '\t')
     print("There is {} predicted epitopes.".format(len(predictions)))   
 
 
