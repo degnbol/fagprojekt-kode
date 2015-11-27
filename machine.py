@@ -265,7 +265,8 @@ def predict(path, weightPath1, weightPath2, method):
                 if(outputLayer <= limit):
                     # plus one, since both are zero indexed
                     predictions.append([proteinId + 1, pos + 1])
-            
+    
+    
                 
     np.savetxt(predictionPath, np.array(predictions), fmt = '%d', delimiter = '\t')
     print("There is {} predicted epitopes.".format(len(predictions)))   
