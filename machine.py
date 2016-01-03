@@ -10,9 +10,9 @@ import os
 import sys
 import numpy as np
 import argparse
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as pyplot
 
-# ændr sti så vi kan finde hjælpefunktioner
+# change path to find other functions
 projectPath = os.path.dirname(os.path.abspath(sys.argv[0]))
 os.chdir(projectPath)
 
@@ -46,10 +46,10 @@ parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
 parser.add_argument('--method', default = 'fasta', help = helpForMethod)
 
 # train with this line uncommented
-#args = parser.parse_args("data/mhcSequences.txt -t --epochs 0 --proceed".split())
+args = parser.parse_args("data/mhcSequences.txt -t --epochs 0 --proceed".split())
 
 # predict with this line uncommented
-args = parser.parse_args("data/hivCodingSequences.txt".split())
+#args = parser.parse_args("data/hivCodingSequences.txt".split())
 
 # have the program be run from terminal with this line uncommented
 #args = parser.parse_args()
@@ -95,7 +95,7 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
         weight2 = np.load(weightPath2)
     else:
         weight1 = weight(hiddenNodes, numOfAminoAcids * mer + 1) # plus 1 for bias
-        weight2 = weight(1, hiddenNodes + 1) # plus 1 for bias    
+        weight2 = weight(1, hiddenNodes + 1) # plus 1 for bias   
     
     bestWeight1 = weight1
     bestWeight2 = weight2
@@ -180,14 +180,14 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     
     
     # plot error
-    plot.plot(trainError, label = "Training set")
-    plot.plot(valError, label = "Validation set")
-    plot.legend()
-    plot.xlabel("epoch")
-    plot.ylabel("error")
-    plot.title("Validation")
-    plot.savefig('validation.png', bbox_inches='tight')    
-    plot.show()
+    pyplot.plot(trainError, label = "Training set")
+    pyplot.plot(valError, label = "Validation set")
+    pyplot.legend()
+    pyplot.xlabel("epoch")
+    pyplot.ylabel("error")
+    pyplot.title("Validation")
+    pyplot.savefig('validation.png', bbox_inches='tight')    
+    pyplot.show()
             
     # save the best weight matrices
     np.save(weightPath1, bestWeight1)
@@ -210,26 +210,28 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
 
 
     # plot comparison of prediction and target for evaluation set
-    plot.plot(evalTarget, evalPrediction, '.')
-    plot.xlabel("target")
-    plot.ylabel("prediction")
-    plot.title("Evaluation")
-    plot.savefig('evaluationLog.png', bbox_inches='tight')    
-    plot.show()
+    pyplot.plot(evalTarget, evalPrediction, '.')
+    pyplot.xlabel("target")
+    pyplot.ylabel("prediction")
+    pyplot.title("Evaluation")
+    pyplot.savefig('evaluationLog.png', bbox_inches='tight')    
+    pyplot.show()
     
     # how correlated is it?
     corr = np.corrcoef(evalTarget, evalPrediction)[1,0]
     print("The Pearson correlation coefficient is {}.".format(corr))
     
-    # plot comparison again, now inverse log transfomed back
+    # plot comparison again, now inverse log transfomed back but with a logarithmic scale
     evalPrediction = logTransform.invTransform(evalPrediction)
     evalTarget = logTransform.invTransform(evalTarget)
-    plot.plot(evalTarget, evalPrediction, '.')
-    plot.xlabel("target")
-    plot.ylabel("prediction")
-    plot.title("Evaluation")
-    plot.savefig('evaluation.png', bbox_inches='tight')    
-    plot.show()
+    pyplot.axes().set_xscale('log')
+    pyplot.axes().set_yscale('log')
+    pyplot.plot(evalTarget, evalPrediction, '.')
+    pyplot.xlabel("target")
+    pyplot.ylabel("prediction")
+    pyplot.title("Evaluation")
+    pyplot.savefig('evaluation.png', bbox_inches='tight')    
+    pyplot.show()
     
 
  

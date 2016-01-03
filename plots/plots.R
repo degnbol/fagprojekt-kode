@@ -153,3 +153,37 @@ venn = venneuler(c(Machine=totalMachine, NetMHC=totalNetmhc, Experimental=totalE
 plot(venn)
 
 
+
+
+
+
+# see what we found that the other methods didn't find.
+
+found = setdiff(intersect(xMachine, xExperiments),
+        intersect(xNetmhc, xExperiments))
+found
+prot = experimentProt[found == xExperiments]
+prot
+posInProt = experimentPos[found == xExperiments]
+posInProt
+# reload original data
+netmhc = read.csv("data/netmhc.csv", header = TRUE, sep=";")
+smmpmbec = read.csv("data/smmpmbec.csv", header = TRUE, sep=";", stringsAsFactors = FALSE)
+syfpeithi = read.csv("data/syfpeithi.csv", header = TRUE, sep=";")
+found = smmpmbec[smmpmbec$position == posInProt,]
+found
+found = found[found$protein == prot,]
+found
+
+# see how well different methods predicted on this
+a = netmhc[netmhc$position == posInProt,]
+a[a$protein == prot,]$affinity
+a = smmpmbec[smmpmbec$position == posInProt,]
+a[a$protein == prot,]$affinity
+a = syfpeithi[syfpeithi$position == posInProt,]
+a[a$protein == prot,]$score
+
+
+
+
+

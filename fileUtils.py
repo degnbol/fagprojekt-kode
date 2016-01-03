@@ -55,11 +55,43 @@ def readPeptides(path, mer):
 
         for line in data:
             
-            line = line.upper()
+            l = line.strip().upper()
             
-            if (len(line) == 9):
-                sequence.append(line)
+            if (len(l) == 9):
+                sequence.append(l)
             
 
     return sequence
+    
+
+def readColumn(path, column, header):
+    
+    out = []
+    
+    with open(path) as data:
+        
+        for line in data:
+            
+            l = line.strip().split(';')
+            for i in range(len(l)):
+                l[i] = string2number(l[i])
+            
+            out.append(l[column])
+
+    if(header):
+        out = out[1:(len(out)-1)]            
+
+    return np.array(out)
+    
+def string2number(s):
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            return s
+    
+    
+    
     
