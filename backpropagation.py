@@ -13,7 +13,8 @@ def backward(layer, nextWeight, nextDelta):
     need to be controled with matrix types instead of array types. Since we only
     have one way of multiplying where the dimensions fits, we don't need to worry
     about all that. Numpy takes care of it for us.
-    """
+    """  
+    
     return diffSmoothThreshold(layer) * nextWeight * nextDelta
     
 def updateWeight(previousLayer, weight, nextDelta, learningRate):

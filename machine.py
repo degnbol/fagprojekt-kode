@@ -46,7 +46,7 @@ parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
 parser.add_argument('--method', default = 'fasta', help = helpForMethod)
 
 # train with this line uncommented
-args = parser.parse_args("data/mhcSequences.txt -t --epochs 0 --proceed".split())
+args = parser.parse_args("data/mhcSequences.txt -t --epochs 20 --proceed".split())
 
 # predict with this line uncommented
 #args = parser.parse_args("data/hivCodingSequences.txt".split())
@@ -180,9 +180,9 @@ def train(path, weightPath1, weightPath2, hiddenNodes, epochs, learningRate, pro
     
     
     # plot error
-    pyplot.plot(trainError, label = "Training set")
-    pyplot.plot(valError, label = "Validation set")
-    pyplot.legend()
+    pyplot.plot(np.arange(490, 510), trainError, label = "Training set")
+    pyplot.plot(np.arange(490, 510), valError, label = "Validation set")
+    pyplot.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0)
     pyplot.xlabel("epoch")
     pyplot.ylabel("error")
     pyplot.title("Validation")

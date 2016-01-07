@@ -28,6 +28,10 @@ limit = 500
 syfLimit = 21
 names = np.array(["gag", "pol", "vif", "vpr", "tat", "rev", "vpu", "env", "nef"])
 
+# mhc epitopes
+mhcSequences, mhcAffinities = fileUtils.readHLA("data/mhcSequences.txt")
+mhcEpitopes = mhcSequences[mhcAffinities <= limit]
+
 # complete hiv
 hivProteins = fileUtils.readFasta("data/hivCodingSequences.txt")
 
@@ -177,10 +181,14 @@ noInNetmhc = np.logical_and(netmhc0 == 'gag', netmhc1 == 58+1)
 
 
 
-
-
-
-
+# mhc epitopes in HIV that hasn't already been found
+hiv = []
+for i in range(len(names)):
+    hiv = hiv + allSequences[i]
+newEpitopes = np.intersect1d(mhcEpitopes, np.setdiff1d(hiv, hivEpitopes))
+#print(newEpitopes)
+newPredictions = np.intersect1d(newEpitopes, machine[0])
+#print(newPredictions)
 
 
 
