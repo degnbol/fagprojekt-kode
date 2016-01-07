@@ -46,13 +46,13 @@ parser.add_argument('--proceed', action = 'store_true', help = helpForProceed)
 parser.add_argument('--method', default = 'fasta', help = helpForMethod)
 
 # train with this line uncommented
-args = parser.parse_args("data/mhcSequences.txt -t --epochs 20 --proceed".split())
+#args = parser.parse_args("data/mhcSequences.txt -t --epochs 20 --proceed".split())
 
 # predict with this line uncommented
 #args = parser.parse_args("data/hivCodingSequences.txt".split())
 
 # have the program be run from terminal with this line uncommented
-#args = parser.parse_args()
+args = parser.parse_args()
 
 
 # set seed to be able to reproduce results
