@@ -193,3 +193,11 @@ newPredictions = np.intersect1d(newEpitopes, machine[0])
 
 
 
+
+
+
+
+
+
+
+
